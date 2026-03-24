@@ -1,22 +1,20 @@
 <?php
 header('Content-Type: application/json');
-
-$socketPath = '/cloudsql/quizgame-491018:us-west1:quizgame';
-$dbName = getenv('DB_NAME');
-$dbUser = getenv('DB_USER');
-$dbPassword = getenv('DB_PASSWORD');
-$dbHost = getenv('DB_HOST');
-
-$dsn = $dbHost
-  ? "mysql:host=$dbHost;dbname=$dbName"
-  : "mysql:unix_socket=$socketPath;dbname=$dbName";
+require_once __DIR__ . '/db/db.php';
+require_once __DIR__ . '/services/GameRepository.php';
 
 try {
-  $pdo = new PDO($dsn, $dbUser, $dbPassword);
-  $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+  $repo = new GameRepository();
+  $path = $_SERVER['REQUEST_URI'];
+  $date = $_GET['date'] ?? null;
 
-  $games = $pdo->query('SELECT * FROM games ORDER BY date DESC LIMIT 1')->fetchAll(PDO::FETCH_ASSOC);
-  echo json_encode($games);
+  if ($date) {
+    echo json_encode($repo->getByDate($date));
+  } else if (str_contains($path, '/dates')) {
+    echo json_encode($repo->getAllDates());
+  } else {
+    echo json_encode($repo->getLatest());
+  }
 } catch (Exception $e) {
   http_response_code(500);
   echo json_encode(['error' => $e->getMessage()]);
