@@ -28,3 +28,10 @@ jobs:
           context: .
           push: "${{ github.ref == 'refs/heads/main' }}"
           tags: "us-west1-docker.pkg.dev/quizgame-491018/gwd/api:latest"
+          
+      - name: Deploy to Cloud Run
+        if: github.ref == 'refs/heads/main'
+        run: |
+          gcloud run deploy api \
+            --image=us-west1-docker.pkg.dev/quizgame-491018/gwd/api:latest \
+            --region=us-west1
