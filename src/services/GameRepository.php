@@ -9,34 +9,51 @@ class GameRepository {
   }
 
   public function getLatest(): array {
-    $stmt = $this->pdo->query('
-      SELECT g.id, g.date, a.category, a.answer, a.sort_order,
-             q.question, q.difficulty
-      FROM games g
-      JOIN answers a ON a.game_id = g.id
-      JOIN questions q ON q.answer_id = a.id
-      ORDER BY g.date DESC, a.sort_order ASC, q.difficulty ASC
-      LIMIT 15
-    ');
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-  }
+  $stmt = $this->pdo->query('
+    SELECT g.id, g.date, a.id as answer_id, a.category, a.answer, a.sort_order,
+           q.question, q.difficulty
+    FROM games g
+    JOIN answers a ON a.game_id = g.id
+    JOIN questions q ON q.answer_id = a.id
+    ORDER BY g.date DESC, a.sort_order ASC, q.difficulty ASC
+    LIMIT 15
+  ');
+  return $this->groupIntoRounds($stmt->fetchAll(PDO::FETCH_ASSOC));
+}
 
-  public function getByDate(string $date): array {
-    $stmt = $this->pdo->prepare('
-      SELECT g.id, g.date, a.category, a.answer, a.sort_order,
-             q.question, q.difficulty
-      FROM games g
-      JOIN answers a ON a.game_id = g.id
-      JOIN questions q ON q.answer_id = a.id
-      WHERE g.date = ?
-      ORDER BY a.sort_order ASC, q.difficulty ASC
-    ');
-    $stmt->execute([$date]);
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-  }
+public function getByDate(string $date): array {
+  $stmt = $this->pdo->prepare('
+    SELECT g.id, g.date, a.id as answer_id, a.category, a.answer, a.sort_order,
+           q.question, q.difficulty
+    FROM games g
+    JOIN answers a ON a.game_id = g.id
+    JOIN questions q ON q.answer_id = a.id
+    WHERE g.date = ?
+    ORDER BY a.sort_order ASC, q.difficulty ASC
+  ');
+  $stmt->execute([$date]);
+  return $this->groupIntoRounds($stmt->fetchAll(PDO::FETCH_ASSOC));
+}
 
-  public function getAllDates(): array {
-    $stmt = $this->pdo->query('SELECT id, date FROM games ORDER BY date DESC');
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+private function groupIntoRounds(array $rows): array {
+  $rounds = [];
+  foreach ($rows as $row) {
+    $order = $row['sort_order'];
+    if (!isset($rounds[$order])) {
+      $rounds[$order] = [
+        'answer_id' => $row['answer_id'],
+        'category'  => $row['category'],
+        'answer'    => $row['answer'],
+        'sort_order' => $order,
+        'date'      => $row['date'],
+        'questions' => []
+      ];
+    }
+    $rounds[$order]['questions'][] = [
+      'question'   => $row['question'],
+      'difficulty' => (int) $row['difficulty']
+    ];
   }
+  return array_values($rounds);
+}
 }
