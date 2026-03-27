@@ -10,8 +10,6 @@ try {
 
   if ($date) {
     echo json_encode($repo->getByDate($date));
-  } else if (str_contains($path, '/dates')) {
-    echo json_encode($repo->getAllDates());
   } else {
     echo json_encode($repo->getLatest());
   }
