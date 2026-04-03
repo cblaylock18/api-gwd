@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../db/db.php';
 
 use Gemini\Data\Content;
@@ -79,7 +79,7 @@ class AnswerCheckerService {
         "Question: {$question} Correct Answer: {$correctAnswer}. User Answer: {$userAnswer}."
       );
 
-    $result = $response->json();
-    return (bool) ($result['correct'] ?? false);
+$result = $response->json();
+return (bool) ($result->correct ?? false);
   }
 }
