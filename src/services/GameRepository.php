@@ -11,7 +11,7 @@ class GameRepository {
   public function getLatest(): array {
   $stmt = $this->pdo->query('
     SELECT g.id, g.date, a.id as answer_id, a.category, a.answer, a.sort_order,
-           q.question, q.difficulty
+           q.id as question_id, q.question, q.difficulty
     FROM games g
     JOIN answers a ON a.game_id = g.id
     JOIN questions q ON q.answer_id = a.id
@@ -24,7 +24,7 @@ class GameRepository {
 public function getByDate(string $date): array {
   $stmt = $this->pdo->prepare('
     SELECT g.id, g.date, a.id as answer_id, a.category, a.answer, a.sort_order,
-           q.question, q.difficulty
+           q.id as question_id,q.question, q.difficulty
     FROM games g
     JOIN answers a ON a.game_id = g.id
     JOIN questions q ON q.answer_id = a.id
@@ -51,9 +51,22 @@ private function groupIntoRounds(array $rows): array {
     }
     $rounds[$order]['questions'][] = [
       'question'   => $row['question'],
+      'question_id' => $row['question_id'],
       'difficulty' => (int) $row['difficulty']
     ];
   }
   return array_values($rounds);
 }
+
+public function getQuestionById(int $questionId): ?array {
+  $stmt = $this->pdo->prepare('
+    SELECT q.id, q.question, q.difficulty, a.answer, a.category
+    FROM questions q
+    JOIN answers a ON q.answer_id = a.id
+    WHERE q.id = ?
+  ');
+  $stmt->execute([$questionId]);
+  $result = $stmt->fetch(PDO::FETCH_ASSOC);
+  return $result ?: null; 
+  }
 }
