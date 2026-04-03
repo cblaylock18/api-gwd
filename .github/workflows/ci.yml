@@ -34,5 +34,5 @@ jobs:
         run: |
           gcloud run deploy api \
             --image=us-west1-docker.pkg.dev/quizgame-491018/gwd/api:latest \
-            --region=us-west1
+            --region=us-west1 \
             --set-secrets=GEMINI_API_KEY=GEMINI_API_KEY:latest
