@@ -56,28 +56,3 @@ On push to `main`, GitHub Actions:
 1. Builds the Docker image
 2. Pushes it to Google Artifact Registry (`us-west1-docker.pkg.dev/quizgame-491018/gwd/api:latest`)
 3. Deploys the new image to the Cloud Run service
-
-**Production URL:** `https://api-369920917738.us-west1.run.app`
-
-## Cloud Run commands
-
-**Manually deploy a new image:**
-
-```bash
-gcloud run deploy api \
-  --image=us-west1-docker.pkg.dev/quizgame-491018/gwd/api:latest \
-  --region=us-west1 \
-  --platform=managed \
-  --allow-unauthenticated \
-  --set-secrets=DB_USER=DB_USER:latest,DB_PASSWORD=DB_PASSWORD:latest,DB_NAME=DB_NAME:latest \
-  --set-cloudsql-instances=quizgame-491018:us-west1:quizgame
-```
-
-**Check logs:**
-
-```bash
-gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=api" \
-  --limit=50 \
-  --format="value(textPayload)" \
-  --project=quizgame-491018
-```
